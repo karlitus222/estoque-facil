@@ -2,6 +2,8 @@
 
 Sistema de estoque e vendas desenvolvido para a disciplina Projeto de Banco de Dados.
 
+[Repositório no GitHub](https://github.com/karlitus222/estoque-facil)
+
 - **Aluno:** Carlos Gabriel Raposo Landim
 - **Disciplina:** Projeto de Banco de Dados
 - **Professor:** Anderson Soares

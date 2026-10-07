@@ -6,6 +6,8 @@ O fluxo verificado é: formulário da aplicação, rota HTTP, operação no Post
 
 Execute `npm test`. Os nove casos verificam:
 
+Resultado da execução em 06/10/2026: **9 testes aprovados, nenhuma falha**.
+
 1. Criação de View, Function e Procedure reais, sem duplicar a carga inicial;
 2. Cadastro, consulta, edição e exclusão de produtos;
 3. Orçamento com arredondamento decimal, sem movimentar estoque;
