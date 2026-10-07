@@ -121,7 +121,6 @@ src/
     icone.svg
 docs/
   banco.md
-  roteiro.md
   entrega.md
 tests/
   sistema.test.js
@@ -178,6 +177,5 @@ O modo PGlite foi validado localmente. O modo com servidor PostgreSQL depende de
 ## Apresentação
 
 - [Explicação do banco e diagrama](docs/banco.md)
-- [Roteiro para o vídeo](docs/roteiro.md)
 - [Testes e conferência das telas](docs/testes.md)
 - [Passos para a entrega](docs/entrega.md)
