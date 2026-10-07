@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#143d32" />
+    <title>Estoque Fácil · Estoque e vendas</title>
+    <link rel="icon" href="/icone.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/estilo.css" />
+    <script src="/script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Pular para o conteúdo</a>
+    <aside class="sidebar">
+      <a href="#relatorio" class="brand"
+        ><span class="brand-mark">e</span
+        ><span>Estoque<span class="brand-light">Fácil</span></span></a
+      >
+      <div class="workspace-label">SUA LOJA, EM ORDEM</div>
+      <nav aria-label="Menu principal">
+        <a href="#relatorio" data-page="relatorio"
+          ><span aria-hidden="true">▥</span> Relatório de vendas</a
+        >
+        <a href="#produtos" data-page="produtos"
+          ><span aria-hidden="true">▦</span> Produtos e estoque</a
+        >
+        <a href="#orcamento" data-page="orcamento"
+          ><span aria-hidden="true">▤</span> Orçamento</a
+        >
+        <a href="#venda" data-page="venda"
+          ><span aria-hidden="true">＋</span> Nova venda</a
+        >
+      </nav>
+      <div class="sidebar-bottom">
+        <span class="avatar">CG</span>
+        <div>Carlos Gabriel<small>Projeto de Banco de Dados</small></div>
+      </div>
+    </aside>
+    <main id="main">
+      <header class="topbar">
+        <span
+          >Gestão da loja <span class="divider">/</span>
+          <span id="breadcrumb">Relatório de vendas</span></span
+        ><span class="local-badge">Ambiente acadêmico</span>
+      </header>
+      <div class="content">
+        <div
+          id="notice"
+          class="notice"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+        <section
+          id="page-relatorio"
+          class="page"
+          aria-labelledby="title-relatorio"
+        >
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">VISÃO GERAL</p>
+              <h1 id="title-relatorio">Relatório de vendas</h1>
+              <p>Acompanhe os resultados e o movimento da sua loja.</p>
+            </div>
+            <a class="button primary" href="#venda">＋ Registrar venda</a>
+          </div>
+          <div class="metrics" id="metrics">
+            <div class="card">Carregando resultados…</div>
+          </div>
+          <div class="section-title">
+            <div>
+              <h2>Histórico de vendas</h2>
+              <p>Todas as vendas registradas, da mais recente à mais antiga.</p>
+            </div>
+            <button id="refresh-report" class="button secondary" type="button">
+              Atualizar
+            </button>
+          </div>
+          <div class="table-card">
+            <div class="table-scroll">
+              <table>
+                <caption class="sr-only">
+                  Vendas registradas
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Venda / data</th>
+                    <th>Cliente</th>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Desconto</th>
+                    <th class="right">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="sales-rows"></tbody>
+              </table>
+            </div>
+            <div class="table-footer" id="sales-count"></div>
+          </div>
+        </section>
+        <section
+          id="page-produtos"
+          class="page"
+          aria-labelledby="title-produtos"
+          hidden
+        >
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">CATÁLOGO</p>
+              <h1 id="title-produtos">Produtos e estoque</h1>
+              <p>
+                Organize os produtos e acompanhe o que precisa de reposição.
+              </p>
+            </div>
+            <button id="new-product" class="button primary" type="button">
+              ＋ Novo produto
+            </button>
+          </div>
+          <div class="toolbar">
+            <label class="search-label"
+              ><span class="sr-only">Buscar produto</span
+              ><input
+                id="product-search"
+                type="search"
+                placeholder="Buscar por produto ou categoria" /></label
+            ><span id="product-count" class="muted"></span>
+          </div>
+          <div class="table-card">
+            <div class="table-scroll">
+              <table>
+                <caption class="sr-only">
+                  Produtos cadastrados
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Situação</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="product-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <section
+          id="page-orcamento"
+          class="page"
+          aria-labelledby="title-orcamento"
+          hidden
+        >
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">ANTES DE VENDER</p>
+              <h1 id="title-orcamento">Simular orçamento</h1>
+              <p>Confira o valor com desconto antes de registrar uma venda.</p>
+            </div>
+          </div>
+          <div class="form-layout">
+            <form id="budget-form" class="card form-card">
+              <h2>Monte o orçamento</h2>
+              <label
+                >Produto<select
+                  name="produto_id"
+                  required
+                  class="product-select"
+                >
+                  <option value="">Selecione um produto</option>
+                </select></label
+              >
+              <div class="field-pair">
+                <label
+                  >Quantidade<input
+                    name="quantidade"
+                    type="number"
+                    min="1"
+                    max="1000000"
+                    step="1"
+                    value="1"
+                    required /></label
+                ><label
+                  >Desconto (%)<input
+                    name="desconto"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value="0"
+                    required
+                /></label>
+              </div>
+              <p class="form-note">
+                A simulação não reserva nem altera o estoque.
+              </p>
+              <button class="button primary" type="submit">
+                Calcular orçamento
+              </button>
+            </form>
+            <div class="card result-card" id="budget-result" aria-live="polite">
+              <span class="result-symbol" aria-hidden="true">=</span>
+              <h2>Seu orçamento aparece aqui</h2>
+              <p>
+                Escolha o produto, a quantidade e o desconto para calcular o
+                total.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section
+          id="page-venda"
+          class="page"
+          aria-labelledby="title-venda"
+          hidden
+        >
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">ATENDIMENTO</p>
+              <h1 id="title-venda">Registrar uma venda</h1>
+              <p>
+                Informe os dados para confirmar a venda e atualizar o estoque.
+              </p>
+            </div>
+          </div>
+          <div class="form-layout">
+            <form id="sale-form" class="card form-card">
+              <h2>Dados da venda</h2>
+              <label
+                >Nome do cliente<input
+                  name="cliente"
+                  type="text"
+                  maxlength="100"
+                  placeholder="Ex.: Maria Oliveira"
+                  required
+                  autocomplete="off"
+              /></label>
+              <label
+                >Produto<select
+                  name="produto_id"
+                  required
+                  class="product-select"
+                >
+                  <option value="">Selecione um produto</option>
+                </select></label
+              >
+              <div class="field-pair">
+                <label
+                  >Quantidade<input
+                    name="quantidade"
+                    type="number"
+                    min="1"
+                    max="1000000"
+                    step="1"
+                    value="1"
+                    required /></label
+                ><label
+                  >Desconto (%)<input
+                    name="desconto"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value="0"
+                    required
+                /></label>
+              </div>
+              <p class="form-note">
+                Cada venda registra um produto. O preço e a disponibilidade são
+                conferidos na confirmação.
+              </p>
+              <button class="button primary" type="submit">
+                Confirmar venda
+              </button>
+            </form>
+            <div class="card result-card" id="sale-result" aria-live="polite">
+              <span class="result-symbol" aria-hidden="true">＋</span>
+              <h2>Pronto para a próxima venda</h2>
+              <p>
+                Ao confirmar, a venda será registrada e a quantidade será
+                descontada do estoque.
+              </p>
+            </div>
+          </div>
+        </section>
+        <footer class="page-footer">
+          <span
+            >Estoque Fácil <span aria-hidden="true">·</span> Projeto
+            acadêmico</span
+          ><span id="db-status">Conectando ao banco…</span>
+        </footer>
+      </div>
+    </main>
+    <dialog id="product-dialog" aria-labelledby="product-dialog-title">
+      <form id="product-form" class="form-card">
+        <div class="dialog-heading">
+          <h2 id="product-dialog-title">Novo produto</h2>
+          <button
+            type="button"
+            class="icon-button"
+            id="close-product"
+            aria-label="Fechar formulário"
+          >
+            ×
+          </button>
+        </div>
+        <input name="id" type="hidden" /><input name="versao" type="hidden" />
+        <label
+          >Nome do produto<input name="nome" maxlength="100" required
+        /></label>
+        <label
+          >Categoria<input
+            name="categoria"
+            maxlength="60"
+            list="categories"
+            required
+        /></label>
+        <datalist id="categories">
+          <option value="Papelaria"></option>
+          <option value="Acessórios"></option>
+          <option value="Escritório"></option>
+        </datalist>
+        <label
+          >Preço (R$)<input
+            name="preco"
+            type="number"
+            min="0.01"
+            max="999999.99"
+            step="0.01"
+            required
+        /></label>
+        <div class="field-pair">
+          <label
+            >Estoque atual<input
+              name="estoque"
+              type="number"
+              min="0"
+              max="1000000"
+              step="1"
+              required /></label
+          ><label
+            >Estoque mínimo<input
+              name="estoque_minimo"
+              type="number"
+              min="0"
+              max="1000000"
+              step="1"
+              value="5"
+              required
+          /></label>
+        </div>
+        <p id="product-error" class="inline-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="button secondary" type="button" id="cancel-product">
+            Cancelar</button
+          ><button class="button primary" type="submit">Salvar produto</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="delete-dialog" aria-labelledby="delete-title">
+      <div class="form-card">
+        <h2 id="delete-title">Excluir produto?</h2>
+        <p id="delete-description"></p>
+        <p class="form-note">
+          Produtos com vendas registradas são preservados pelo banco.
+        </p>
+        <p id="delete-error" class="inline-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="button secondary" id="cancel-delete">Cancelar</button
+          ><button class="button danger" id="confirm-delete">
+            Excluir produto
+          </button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

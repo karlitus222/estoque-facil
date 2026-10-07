@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: estoque_facil
+      POSTGRES_USER: estoque
+      POSTGRES_PASSWORD: estoque_local
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - estoque_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U estoque -d estoque_facil"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  estoque_pg:
