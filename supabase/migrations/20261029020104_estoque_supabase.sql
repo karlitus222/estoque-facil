@@ -254,4 +254,3 @@ REVOKE ALL ON TABLE "public"."relatorio_vendas" FROM "postgres";
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."relatorio_vendas" TO "postgres";
 
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."relatorio_vendas" TO "service_role";
-
