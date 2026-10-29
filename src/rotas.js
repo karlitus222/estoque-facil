@@ -61,7 +61,7 @@ function dadosProduto(body) {
   ];
 }
 
-export function criarApp(db) {
+export function criarApp(db, { cache, supabase } = {}) {
   const app = express();
   app.disable("x-powered-by");
   app.use((_req, res, next) => {
@@ -94,8 +94,28 @@ export function criarApp(db) {
     res.json({ ok: true, database: db.mode });
   });
 
+  app.get('/api/integracoes', async (_req, res) => {
+    let remoto;
+    try { remoto = await supabase?.verificar(); }
+    catch { remoto = { conectado: false, erro: 'Data API indisponível. Confira o servidor Supabase.' }; }
+    const redis = await cache?.status();
+    res.json({ supabase: remoto, redis });
+  });
+  app.post('/api/cache/limpar', async (_req, res) => {
+    await cache?.invalidar();
+    res.json({ ok: true, redis: await cache?.status() });
+  });
+
+  async function consulta(recurso, carregar, res) {
+    if (!cache) return carregar();
+    const resultado = await cache.ler(recurso, carregar);
+    res.set('X-Cache', resultado.origem.split(' ')[0]);
+    res.set('Server-Timing', `consulta;dur=${resultado.ms}`);
+    return resultado.dados;
+  }
+
   app.get("/api/produtos", async (_req, res) => {
-    const { rows } = await db.query("SELECT * FROM produtos ORDER BY nome, id");
+    const rows = await consulta('produtos', async () => (await db.query("SELECT * FROM produtos ORDER BY nome, id")).rows, res);
     res.json(rows);
   });
 
@@ -114,6 +134,7 @@ export function criarApp(db) {
         );
       return rows[0];
     });
+    await cache?.invalidar();
     res.status(201).json(produto);
   });
 
@@ -145,6 +166,7 @@ export function criarApp(db) {
         );
       return rows[0];
     });
+    await cache?.invalidar();
     res.json(produto);
   });
 
@@ -154,6 +176,7 @@ export function criarApp(db) {
       [id(req.params.id)],
     );
     if (!rows.length) throw new Erro("Produto não encontrado.", 404);
+    await cache?.invalidar();
     res.status(204).end();
   });
 
@@ -189,12 +212,13 @@ export function criarApp(db) {
       );
       return rows[0];
     });
+    await cache?.invalidar();
     res.status(201).json(venda);
   });
 
   // VIEW: tanto a listagem quanto os indicadores são lidos da View.
   app.get("/api/relatorio", async (_req, res) => {
-    const data = await db.transaction(async (tx) => {
+    const data = await consulta('relatorio', () => db.transaction(async (tx) => {
       const { rows: vendas } = await tx.query(
         "SELECT * FROM relatorio_vendas ORDER BY criado_em DESC, venda_id DESC",
       );
@@ -205,7 +229,7 @@ export function criarApp(db) {
         coalesce(sum(desconto_valor),0)::numeric(16,2) AS descontos
         FROM relatorio_vendas`);
       return { vendas, resumo: resumo[0] };
-    });
+    }), res);
     res.json(data);
   });
 

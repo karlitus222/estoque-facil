@@ -1,181 +1,135 @@
-# Estoque Fácil
+# Estoque Fácil — Supabase + Redis
 
-Sistema de estoque e vendas desenvolvido para a disciplina Projeto de Banco de Dados.
+Sistema de estoque e vendas para pequenas lojas: reúne produtos, quantidades e histórico, evitando controles manuais separados. Esta versão evolui o trabalho anterior com Supabase real para persistência e Redis real para cache de consultas.
 
-[Repositório no GitHub](https://github.com/karlitus222/estoque-facil)
+- Aluno: Carlos Gabriel Raposo Landim
+- Disciplina: Projeto de Banco de Dados — 26/2
+- Professor: Anderson Soares
+- Trabalho individual: Integração com Supabase e Redis — 29/10/2026
+- [Código desta entrega](https://github.com/karlitus222/estoque-facil/tree/trabalho-supabase-redis)
+- [Vídeo e pacote completo](https://github.com/karlitus222/estoque-facil/releases/tag/supabase-redis-2026-2)
 
-- **Aluno:** Carlos Gabriel Raposo Landim
-- **Disciplina:** Projeto de Banco de Dados
-- **Professor:** Anderson Soares
-- **Trabalho:** individual
-- **Entrega:** 07/10/2026
+## Objetivo e funcionalidades
 
-## Sobre o sistema
+Cadastrar, editar, consultar e excluir produtos sem vendas; acompanhar estoque mínimo; calcular orçamentos com desconto; registrar vendas e consultar relatórios. O painel **Integrações em ação** verifica a Data API do Supabase e mostra conexão, chaves, TTL, contadores e origem de cada consulta no Redis.
 
-O sistema permite cadastrar produtos, controlar quantidades, calcular um orçamento com desconto e registrar vendas. O objetivo é evitar o controle manual do estoque e reunir as vendas em um relatório.
-
-Cada venda contém **um produto e uma quantidade**. O cadastro de cliente é apenas o nome informado na venda. Não há carrinho, pagamento ou emissão de nota fiscal.
+Cada venda contém um produto e uma quantidade. Os clientes de exemplo são fictícios. Não há carrinho, pagamentos ou emissão fiscal.
 
 ## Tecnologias
 
-- JavaScript e Node.js 22 ou superior;
-- Express para a aplicação e as rotas HTTP;
-- HTML, CSS e JavaScript nas telas;
-- PostgreSQL e PL/pgSQL no banco;
-- PGlite para executar o PostgreSQL dentro do processo Node.js no modo local;
-- `pg` para a conexão opcional com um servidor PostgreSQL.
+Node.js 22+, Express, HTML/CSS/JavaScript, PostgreSQL 17 do Supabase, `pg`, `@supabase/supabase-js`, Redis 7.4 e cliente `redis`. Dependências fixadas no lockfile. Docker Desktop executa o ambiente local oficial do Supabase e o Redis. PGlite permanece para testes isolados herdados; o servidor desta versão exige Supabase.
 
-No modo padrão, o PGlite executa o motor do PostgreSQL e salva os dados em `.data/estoque`. A View, a Function e a Procedure são objetos SQL reais criados no banco. Os cálculos não são simulados no JavaScript. Consulte a [documentação do PGlite](https://pglite.dev/docs/about) e a [documentação de persistência](https://pglite.dev/docs/filesystems).
+```text
+Navegador → Express em 127.0.0.1:3012
+             ├─ consulta de produtos/relatório → Redis
+             │    ├─ HIT: cópia temporária
+             │    └─ MISS/BYPASS: PostgreSQL do Supabase
+             ├─ gravação → PostgreSQL → invalidação do cache
+             └─ diagnóstico → Data API via supabase-js
+```
 
-## Como executar
+## Instalação, configuração e execução
 
-Requisito: Node.js 22 ou superior com npm. Na pasta do projeto:
+Requisitos: Git, Node.js 22+ com npm e Docker Desktop com engine Linux iniciada. A primeira instalação precisa de internet para baixar dependências e imagens. A demonstração usa Node 24. Reserve memória e espaço para o conjunto de serviços do Supabase.
 
 ```sh
-npm install
+git clone --branch trabalho-supabase-redis https://github.com/karlitus222/estoque-facil.git
+cd estoque-facil
+npm ci
+npm run supabase:start
+npm run redis:start
+npm run local:config
 npm start
 ```
 
-Abra **http://localhost:3000**. No Windows, se o PowerShell bloquear `npm.ps1`, use `npm.cmd install` e `npm.cmd start`.
+Abra **http://127.0.0.1:3012**. Se o PowerShell bloquear `npm.ps1`, use `npm.cmd` nos mesmos comandos. Não é necessária conta Supabase: a entrega usa o ambiente local oficial, com PostgreSQL e Data API reais. Studio: `http://127.0.0.1:54323`.
 
-Na primeira execução, as tabelas, os três recursos SQL e os dados de exemplo são criados automaticamente. Nas próximas execuções, os dados são mantidos. Há seis produtos e quatro vendas fictícias iniciais. As datas dessas vendas correspondem ao momento da instalação.
+`local:config` obtém a configuração da CLI e cria `.env` sem imprimir credenciais; preserva um arquivo existente. `.env.example` documenta `PORT`, `SUPABASE_URL`, `SUPABASE_DB_URL`, `SUPABASE_SECRET_KEY`, `REDIS_URL` e `CACHE_TTL`. Nunca envie a chave do servidor ao navegador ou ao GitHub.
 
-Para encerrar, pressione `Ctrl+C` no terminal. Execute apenas uma instância usando a mesma pasta do banco local. Não é necessário Docker no modo padrão. Depois de instalar as dependências, o modo local funciona sem internet.
+Portas: 3012 (app), 54321 (API), 54322 (PostgreSQL), 54323 (Studio) e 6387 (Redis). Em caso de conflito, ajuste `supabase/config.toml`, `compose.redis.yaml` e `.env` de forma correspondente. O script usa 3012/6387 como padrões.
 
-Para escolher outra porta, copie `.env.example` para `.env` e altere `PORT`. Para apenas preparar o banco, execute `npm run db:init` com a aplicação parada.
+A migração em `supabase/migrations` recria o esquema. Na primeira inicialização, o app instala seis produtos e quatro vendas fictícias uma única vez, controlado por `controle_banco`. Depois preserva os dados. As datas iniciais correspondem ao momento da instalação. Não execute `supabase db reset` sobre dados que queira manter.
 
-## Telas e recursos do banco
-
-| Tela | Recurso | Uso real |
-| --- | --- | --- |
-| Produtos e estoque | CRUD | Cadastra, consulta, altera e exclui produtos sem vendas |
-| Orçamento | Function `calcular_total` | Calcula o valor de um produto, sua quantidade e o desconto |
-| Nova venda | Procedure `registrar_venda` | Registra a venda, baixa o estoque e cria a movimentação |
-| Relatório de vendas | View `relatorio_vendas` | Apresenta o histórico e fornece os dados dos indicadores |
-
-### Tabelas
-
-- `produtos`: nome, categoria, preço, estoque, estoque mínimo e versão do cadastro;
-- `vendas`: produto, nome do produto na venda, cliente, quantidade, preço, desconto, total e data;
-- `movimentacoes`: entradas, ajustes e saídas do estoque;
-- `controle_banco`: controle técnico da instalação inicial.
-
-O preço e o nome vendidos são guardados em `vendas`. Alterar um produto não muda o histórico. A categoria apresentada no relatório é a categoria atual do cadastro.
-
-### Function
-
-Arquivo: [banco/funcoes/total.sql](banco/funcoes/total.sql).
-
-`calcular_total(preco, quantidade, desconto)` retorna o total arredondado para duas casas decimais. Recebe preço numérico, quantidade inteira e desconto percentual. Usa `NUMERIC` para calcular valores monetários.
-
-```sql
-SELECT calcular_total(24.90, 2, 10); -- 44.82
-```
-
-A tela Orçamento envia os dados a `POST /api/orcamento`. A rota consulta a Function com o preço obtido do próprio banco. A Procedure também reutiliza a mesma Function.
-
-### Procedure
-
-Arquivo: [banco/procedures/venda.sql](banco/procedures/venda.sql).
-
-`registrar_venda(produto_id, quantidade, desconto, cliente, venda_id)` verifica o produto, calcula o total, confere o estoque, insere a venda, atualiza o saldo e registra a saída. `venda_id` é um parâmetro `INOUT`, preenchido com o código da venda.
-
-```sql
-CALL registrar_venda(1, 2, 10, 'Maria Oliveira', NULL);
-```
-
-A tela Nova venda chama `POST /api/vendas`, que executa `CALL`. A operação participa de uma transação: se qualquer etapa falhar, nenhuma alteração é confirmada. O produto é lido com `FOR UPDATE` para proteger o saldo durante a venda.
-
-### View
-
-Arquivo: [banco/views/vendas.sql](banco/views/vendas.sql).
-
-`relatorio_vendas` junta `vendas` e `produtos`, retornando cliente, produto, categoria atual, quantidade, preço, desconto, total e data. A tela Relatório de vendas consulta `GET /api/relatorio`. Essa rota usa a View tanto para a lista quanto para os indicadores.
-
-```sql
-SELECT * FROM relatorio_vendas ORDER BY criado_em DESC;
-SELECT SUM(total) AS faturamento FROM relatorio_vendas;
-```
-
-As três finalidades são diferentes: **calcular** um orçamento, **executar** uma venda e **consultar** um relatório.
-
-## Estrutura
-
-```text
-banco/
-  tabelas/tabelas.sql
-  views/vendas.sql
-  funcoes/total.sql
-  procedures/venda.sql
-  dados/dados.sql
-  criar.sql
-src/
-  servidor.js
-  banco.js
-  iniciar.js
-  rotas.js
-  publico/
-    index.html
-    estilo.css
-    script.js
-    icone.svg
-docs/
-  banco.md
-  entrega.md
-tests/
-  sistema.test.js
-README.md
-```
-
-## Usar um servidor PostgreSQL
-
-O modo com servidor usa os mesmos scripts SQL. Pode ser utilizado com PostgreSQL 17 ou superior. Ele tem armazenamento separado do modo embarcado; trocar o modo não transfere os dados existentes.
-
-Com Docker Desktop aberto:
+Pare o app com Ctrl+C. Para parar serviços preservando o banco:
 
 ```sh
-docker compose up -d
+docker compose -f compose.redis.yaml stop
+npx supabase stop
 ```
 
-Copie `.env.example` para `.env` e habilite:
+Para retornar, execute `supabase:start`, `redis:start` e `npm start`. O Redis não persiste dados: seu conteúdo é reconstruído do Supabase. O antigo `compose.yaml` pertence à primeira versão e não é usado nesta entrega.
 
-```dotenv
-DATABASE_URL=postgresql://estoque:estoque_local@localhost:5433/estoque_facil
-```
+## Integração com Supabase
 
-Depois execute `npm start`. A instalação do banco acontece automaticamente. A senha do exemplo é apenas para o banco local de demonstração.
+Produtos, vendas e movimentações ficam no PostgreSQL do Supabase. As rotas usam `pg`, consultas parametrizadas e transações. A procedure `registrar_venda` bloqueia a linha com `FOR UPDATE`, confere saldo, calcula desconto pela function `calcular_total`, registra venda/movimentação e baixa estoque na mesma transação. Falhas causam rollback. O relatório consulta a view `relatorio_vendas`.
 
-Também é possível criar manualmente as estruturas em um **banco novo e vazio**:
+`src/supabase.js` também usa `supabase-js` para consultar a Data API: conta produtos e lê cinco registros. Essa amostra aparece no painel e não passa pelo cache, comprovando a comunicação e permitindo conferir o saldo persistido.
 
-```sh
-psql -h localhost -p 5433 -U estoque -d estoque_facil -f banco/criar.sql
-```
+`banco/seguranca.sql` habilita RLS, restringe `anon`/`authenticated`, usa view `security_invoker` e fixa `search_path` das rotinas. A chave privilegiada permanece no servidor. O app acadêmico escuta em loopback e não tem login; não deve ser exposto diretamente à internet. Produção exigiria autenticação, autorização, conta SQL com privilégios mínimos e backups.
 
-O arquivo `criar.sql` é um script do cliente `psql`, pois usa `\ir` para incluir os outros arquivos. Para usar o editor do pgAdmin, execute o conteúdo dos arquivos na ordem: tabelas, função, procedure, view e dados. Prefira o inicializador do aplicativo para evitar repetir a carga de exemplo. Não execute o script manual sobre uma instalação já preenchida.
+## Uso e justificativa do Redis
+
+Listas de produtos e relatórios são lidas repetidamente entre alterações. Redis mantém essas respostas em memória durante **30 segundos**, reduzindo consultas e agregações no banco. Foi escolhido pelo acesso por chave, expiração nativa e operações atômicas. Uma requisição local isolada pode não ficar mais rápida; o benefício principal é evitar trabalho repetido no banco.
+
+| Evento | Comportamento |
+| --- | --- |
+| MISS | Consulta Supabase e salva resposta com TTL |
+| HIT | Usa cópia válida do Redis |
+| Cadastro, edição, exclusão ou venda | Invalida produtos e relatório após confirmar a gravação |
+| Expiração | A próxima leitura consulta Supabase |
+| Falha do Redis | BYPASS: consulta direta ao Supabase |
+| Reconexão | Descarta cópias antigas antes de reutilizar o cache |
+
+Chaves: `estoque:v2:produtos`, `estoque:v2:relatorio` e `estoque:v2:geracao`. A geração muda junto à invalidação em uma operação `MULTI`. Um script Lua só publica o resultado de uma consulta se a geração ainda for a mesma, impedindo que uma leitura anterior à gravação reponha cache antigo. TTL `-2` significa chave ausente.
+
+Redis nunca decide se há saldo para vender. Orçamento e gravações consultam o banco. Falha de invalidação não transforma venda já confirmada em erro; a reconexão limpa cópias. Contadores são locais ao processo Node e zeram ao reiniciar.
+
+Limites: validado para uma instância do app, sem promessa de consistência distribuída durante falhas entre vários servidores. Alterações diretas no banco podem levar até o TTL para aparecer nas listas. As duas listas expiram; a geração não. Redis tem limite de 64 MB e política `allkeys-lru`.
+
+## Telas e vídeo
+
+[Vídeo demonstrativo na release](https://github.com/karlitus222/estoque-facil/releases/tag/supabase-redis-2026-2). Mostra captura da aplicação funcionando: cadastro, consulta real ao Supabase, MISS/HIT, venda, relatório e falha/retorno do Redis. A narração é sintetizada em português; as telas e resultados vêm do sistema em execução.
+
+![Integrações](docs/imagens/integracoes.png)
+![Produtos](docs/imagens/produtos.png)
+![Relatório](docs/imagens/relatorio.png)
+
+Roteiro reproduzível:
+1. Em Integrações em ação, limpe o cache e consulte produtos duas vezes: MISS e HIT.
+2. Cadastre um produto e registre uma venda.
+3. Confira o relatório e a amostra direta do Supabase.
+4. Pare apenas Redis: `docker compose -f compose.redis.yaml stop redis`.
+5. Consulte no painel: BYPASS. Execute `npm run redis:start`, verifique conexões e consulte novamente: MISS e HIT.
 
 ## Testes
 
 ```sh
 npm test
+npm run test:integracao
 ```
 
-Os testes usam bancos isolados. Verificam os objetos reais do PostgreSQL, o CRUD, os valores monetários, a integração da venda, a falta de estoque, requisições simultâneas, a preservação do histórico, validações e persistência após reiniciar. Não alteram os dados da aplicação.
+`npm test` usa testes isolados de SQL/API e o cenário de cache indisponível. Dois testes que exigem serviços reais são ignorados quando faltam as variáveis. `test:integracao` carrega `.env` e exige Supabase/Redis rodando; execute depois que `npm start` preparar a instalação. Cria seu próprio produto fictício e limpa apenas seus registros, com prefixo Redis exclusivo.
 
-O modo PGlite foi validado localmente. O modo com servidor PostgreSQL depende de um servidor disponível e não foi executado nesta máquina.
+Suíte inteira com ambiente preparado:
 
-## Regras e limites
+```sh
+node --env-file=.env --test --test-concurrency=1
+npx supabase db advisors --local --type security --level warn --fail-on warn
+npm audit
+```
 
-- Quantidade inteira positiva na venda e estoque nunca negativo;
-- Desconto de 0 a 100%, com até duas casas decimais;
-- Produtos com vendas não podem ser excluídos;
-- Ajustes no estoque pelo cadastro também geram movimentações;
-- Edições desatualizadas são rejeitadas para não sobrescrever uma venda recente;
-- Orçamentos não reservam estoque; o valor final é calculado ao confirmar a venda;
-- O servidor escuta apenas em `127.0.0.1`. Trata-se de uma aplicação acadêmica local, sem login;
-- A lista do relatório mostra todas as vendas, sem paginação, adequada ao volume de demonstração.
+Cobertura: CRUD, valores monetários, venda atômica, saldo insuficiente, concorrência, histórico, persistência, Data API, MISS/HIT, invalidação, expiração, corrida consulta/gravação, RLS e continuidade sem Redis. [Detalhes da validação](docs/testes.md).
 
-## Apresentação
+## Estrutura
 
-- [Explicação do banco e diagrama](docs/banco.md)
-- [Testes e conferência das telas](docs/testes.md)
-- [Passos para a entrega](docs/entrega.md)
+- `src/servidor.js`: inicialização e encerramento.
+- `src/rotas.js`: API e invalidação após gravações.
+- `src/cache.js`: cache, TTL, geração e fallback.
+- `src/supabase.js`: Data API real.
+- `src/publico/`: interface e diagnóstico.
+- `banco/`: tabelas, function, procedure, view e segurança.
+- `supabase/`: configuração e migração.
+- `compose.redis.yaml`: Redis desta versão.
+- `tests/`: testes isolados e integração real.
+
+[Diagrama do banco](docs/banco.md). Referências: [Supabase local](https://supabase.com/docs/guides/local-development/cli/getting-started), [conexão PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres), [Redis para Node.js](https://redis.io/docs/latest/develop/clients/nodejs/).

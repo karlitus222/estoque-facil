@@ -1,6 +1,6 @@
 {
   "name": "estoque-facil",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "Projeto acadêmico de banco de dados: estoque e vendas com PostgreSQL.",
@@ -11,11 +11,20 @@
     "start": "node --env-file-if-exists=.env src/servidor.js",
     "dev": "node --env-file-if-exists=.env --watch src/servidor.js",
     "test": "node --test --test-concurrency=1",
-    "db:init": "node --env-file-if-exists=.env src/iniciar.js"
+    "db:init": "node --env-file-if-exists=.env src/iniciar.js",
+    "local:config": "node scripts/configurar-local.js",
+    "supabase:start": "supabase start -x realtime,storage-api,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor",
+    "redis:start": "docker compose -f compose.redis.yaml up -d",
+    "test:integracao": "node --env-file=.env --test tests/integracao.test.js"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.8",
-    "express": "^5.2.1",
-    "pg": "^8.23.1"
+    "@electric-sql/pglite": "0.5.8",
+    "@supabase/supabase-js": "2.118.0",
+    "express": "5.2.1",
+    "pg": "8.23.1",
+    "redis": "6.3.0"
+  },
+  "devDependencies": {
+    "supabase": "2.122.0"
   }
 }

@@ -10,6 +10,7 @@ const escapar = (valor) =>
       ],
   );
 const nomes = {
+  integracoes: "Integrações em ação",
   relatorio: "Relatório de vendas",
   produtos: "Produtos e estoque",
   orcamento: "Orçamento",
@@ -30,6 +31,8 @@ async function api(caminho, metodo = "GET", dados) {
   const resultado = await resposta.json();
   if (!resposta.ok)
     throw new Error(resultado.error || "Não foi possível concluir a operação.");
+  const origem = resposta.headers.get('X-Cache');
+  if (origem) window.ultimaConsultaCache = { origem, tempo: resposta.headers.get('Server-Timing') };
   return resultado;
 }
 
@@ -138,7 +141,8 @@ async function navegar() {
   document.title = `${nomes[pagina]} · Estoque Fácil`;
   $("#notice").hidden = true;
   try {
-    if (pagina === "relatorio") await carregarRelatorio();
+    if (pagina === "integracoes") await carregarIntegracoes();
+    else if (pagina === "relatorio") await carregarRelatorio();
     else await carregarProdutos();
   } catch (erro) {
     avisar(`Não foi possível carregar os dados. ${erro.message}`, true);
@@ -332,4 +336,4 @@ api("status")
   .catch(() => {
     $("#db-status").textContent = "Banco indisponível";
   });
-navegar();
+window.addEventListener('DOMContentLoaded', navegar);

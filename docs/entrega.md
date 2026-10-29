@@ -1,44 +1,9 @@
-# Entrega
+# Entrega — 29/10/2026
 
-- **Aluno:** Carlos Gabriel Raposo Landim
-- **Disciplina:** Projeto de Banco de Dados
-- **Professor:** Anderson Soares
-- **Data:** 07/10/2026
+Carlos Gabriel Raposo Landim — Projeto de Banco de Dados, 26/2.
+Trabalho Prático — Integração com Supabase e Redis.
 
-**Repositório:** https://github.com/karlitus222/estoque-facil
+- [Código e README](https://github.com/karlitus222/estoque-facil/tree/trabalho-supabase-redis)
+- [Vídeo e pacote](https://github.com/karlitus222/estoque-facil/releases/tag/supabase-redis-2026-2)
 
-## O que está no projeto
-
-- CRUD de produtos;
-- View, Function e Procedure integradas às telas;
-- Scripts de tabelas, dados e recursos SQL;
-- Instruções para execução local e servidor PostgreSQL;
-- Diagrama e explicação das regras do banco;
-- Testes de integração.
-
-## Antes de entregar
-
-1. Execute `npm install`, `npm test` e `npm start`.
-2. Confira o sistema em `http://localhost:3000`.
-3. Revise o README e estude as chamadas SQL em `src/rotas.js`.
-4. Confira o repositório público em https://github.com/karlitus222/estoque-facil.
-5. Grave o vídeo de apresentação e disponibilize um link acessível.
-6. Envie os links do repositório e do vídeo no local indicado pelo professor.
-
-Não publique `.env`, `.data` nem `node_modules`. O `.gitignore` já exclui esses caminhos. Quem clonar o projeto recriará o banco pelos scripts e receberá apenas os dados fictícios iniciais.
-
-## Atualizar o repositório
-
-O repositório já está publicado. Depois de alterar arquivos, execute na pasta do projeto:
-
-```sh
-git add .
-git commit -m "Atualiza o projeto"
-git push
-```
-
-Não é necessário criar outro repositório.
-
-## Vídeo
-
-Grave a demonstração do sistema e dos recursos do banco. Confira o acesso ao link antes de enviar.
+A versão anterior permanece no histórico. Esta versão usa Supabase local oficial e Redis em Docker. O pacote não contém .env, credenciais, node_modules ou volumes. Siga o README para recriar o ambiente. O vídeo usa narração sintetizada e captura do app funcionando.

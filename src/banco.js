@@ -14,13 +14,13 @@ export const arquivosSql = [
 ];
 
 export async function abrirBanco({
-  url = process.env.DATABASE_URL,
+  url = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL,
   dataDir = resolve(pastaProjeto, ".data/estoque"),
 } = {}) {
   if (url) {
     const pool = new pg.Pool({ connectionString: url });
     return {
-      mode: "PostgreSQL (servidor)",
+      mode: process.env.SUPABASE_DB_URL ? "Supabase · PostgreSQL" : "PostgreSQL (servidor)",
       query: (sql, params) => pool.query(sql, params),
       async transaction(callback) {
         const client = await pool.connect();

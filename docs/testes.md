@@ -1,37 +1,33 @@
-# Verificação do sistema
+# Validação — Supabase e Redis
 
-O fluxo verificado é: formulário da aplicação, rota HTTP, operação no PostgreSQL e retorno dos dados para a tela.
+Execução final em 29/10/2026, Windows, Node.js 24, Supabase local oficial em Docker e Redis 7.4.
 
-## Testes de integração
+## Resultado automatizado
 
-Execute `npm test`. Os nove casos verificam:
+Comando: `node --env-file=.env --test --test-concurrency=1`
 
-Resultado da execução em 06/10/2026: **9 testes aprovados, nenhuma falha**.
+**12 testes aprovados; 0 falhas; 0 ignorados.**
 
-1. Criação de View, Function e Procedure reais, sem duplicar a carga inicial;
-2. Cadastro, consulta, edição e exclusão de produtos;
-3. Orçamento com arredondamento decimal, sem movimentar estoque;
-4. Venda, baixa de estoque, movimentação e consulta na View;
-5. Rejeição de estoque insuficiente e de quantidade inválida, sem alterações parciais;
-6. Duas solicitações simultâneas disputando a última unidade;
-7. Proteção contra edição desatualizada e preservação do histórico vendido;
-8. Validação de dados na API e na Function SQL;
-9. Persistência após fechar e reabrir o banco local.
+Os nove testes herdados usam PGlite isolado e verificam instalação dos objetos SQL, CRUD, cálculo monetário, venda e movimentação, rollback por falta de estoque, concorrência pela última unidade, edição desatualizada, histórico e persistência após reabrir o banco.
 
-Os testes usam PGlite em memória e uma pasta temporária para verificar persistência. O modo com servidor PostgreSQL externo não faz parte dessa execução.
+Os três testes novos verificam:
 
-## Conferência manual das telas
+1. Serviços reais: Data API do Supabase, conexão PostgreSQL, cadastro, MISS/HIT, invalidação após gravação, venda de duas unidades com desconto, baixa de estoque, expiração em dois segundos e RLS. Uma segunda conexão verifica os dados persistidos.
+2. Corrida entre leitura e invalidação: uma consulta iniciada antes da gravação não repõe a resposta antiga no cache.
+3. Redis indisponível: leitura recorre ao banco e invalidação não provoca falsa falha de uma operação confirmada.
 
-Depois de iniciar com `npm start`, abra `http://localhost:3000` e confira:
+O teste real cria registros próprios e limpa apenas esses registros ao finalizar. Seu prefixo Redis usa UUID para isolar as chaves.
 
-| Tela | Ação | Resultado esperado |
-| --- | --- | --- |
-| Produtos e estoque | Cadastrar, buscar e editar um produto | A lista mostra os dados salvos |
-| Produtos e estoque | Excluir um produto sem vendas | O registro sai da lista |
-| Orçamento | Produto de R$ 25,00, quantidade 2, desconto 10% | Total de R$ 45,00, sem reduzir o estoque |
-| Nova venda | Vender 2 unidades de um produto com saldo 10 | Confirmação da venda e saldo 8 |
-| Nova venda | Pedir mais unidades que o saldo | Mensagem de estoque insuficiente |
-| Relatório de vendas | Abrir após registrar a venda | A venda aparece e os indicadores são atualizados |
-| Produtos e estoque | Excluir um produto já vendido | Mensagem informando que o histórico precisa ser preservado |
+`npx supabase db advisors --local --type security --level warn --fail-on warn`: nenhum problema encontrado.
 
-A verificação automatizada das rotas e do banco não substitui essa conferência visual no navegador.
+`npm audit`: 0 vulnerabilidades reportadas na execução.
+
+## Conferência na interface e vídeo
+
+- Cadastro de Kit de estudo Supabase, preço R$ 49,90 e estoque 12; registro aparece na lista e a Data API passa a contar sete produtos.
+- Limpeza seguida de duas consultas: MISS, depois HIT; chaves e TTL aparecem no painel.
+- Venda de duas unidades do Caderno universitário, com 10% de desconto: total R$ 44,82. Saldo caiu de 38 para 36; relatório exibe a venda e a leitura direta da API do Supabase mostra o novo saldo.
+- Redis foi parado com Docker Compose: a tela mostrou indisponibilidade e BYPASS, mantendo acesso aos sete produtos.
+- Redis reiniciado: nova consulta MISS, seguida de HIT.
+
+O vídeo contém captura da aplicação em execução e narração sintetizada, com aproximadamente 3 minutos e 11 segundos. As imagens no README foram capturadas da mesma execução. A validação local não representa teste de carga, implantação pública ou consistência de múltiplas instâncias durante falhas distribuídas.

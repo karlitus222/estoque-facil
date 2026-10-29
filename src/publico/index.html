@@ -8,6 +8,7 @@
     <link rel="icon" href="/icone.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/estilo.css" />
     <script src="/script.js" defer></script>
+    <script src="/integracoes.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main">Pular para o conteúdo</a>
@@ -18,6 +19,7 @@
       >
       <div class="workspace-label">SUA LOJA, EM ORDEM</div>
       <nav aria-label="Menu principal">
+        <a href="#integracoes" data-page="integracoes"><span aria-hidden="true">◈</span> Integrações em ação</a>
         <a href="#relatorio" data-page="relatorio"
           ><span aria-hidden="true">▥</span> Relatório de vendas</a
         >
@@ -44,6 +46,13 @@
         ><span class="local-badge">Ambiente acadêmico</span>
       </header>
       <div class="content">
+        <section id="page-integracoes" class="page" aria-labelledby="title-integracoes" hidden>
+          <div class="page-heading"><div><p class="eyebrow">SUPABASE + REDIS</p><h1 id="title-integracoes">Integrações em ação</h1><p>Persistência no Supabase. Consultas repetidas atendidas pelo Redis.</p></div><button id="check-integrations" class="button secondary">Verificar conexões</button></div>
+          <div class="integration-flow"><span>Interface gráfica</span><b>→</b><span>API Node.js</span><b>→</b><span>Redis · cache temporário</span><b>↔</b><span>Supabase · PostgreSQL</span></div>
+          <div class="integration-grid"><article class="card integration-card"><p class="eyebrow">PERSISTÊNCIA</p><h2>Supabase</h2><p id="supabase-connection">Verificando…</p><p>Produtos, vendas e movimentações ficam no banco. A venda é registrada em uma transação SQL.</p><div id="supabase-proof"></div></article><article class="card integration-card"><p class="eyebrow">CONSULTAS REPETIDAS</p><h2>Redis</h2><p id="redis-connection">Verificando…</p><p>Uma consulta ausente no cache busca os dados no Supabase. As próximas usam a cópia temporária. Gravações invalidam as duas listas.</p><div id="cache-counts"></div></article></div>
+          <div class="card integration-card"><div class="section-title"><div><h2>Experimente o cache</h2><p>Limpe, consulte duas vezes e compare MISS com HIT.</p></div></div><div class="demo-actions"><button id="clear-cache" class="button secondary">Limpar cache</button><button id="query-products" class="button primary">Consultar produtos</button><button id="query-report" class="button secondary">Consultar relatório</button></div><p id="last-query" role="status">Nenhuma consulta feita nesta tela.</p><div id="cache-keys"></div><p class="form-note">HIT: veio do Redis. MISS: consultou o Supabase. BYPASS: Redis fora do ar, consulta direta ao banco. Tempo medido no servidor, sem garantia de ganho em toda requisição.</p></div>
+          <div class="card integration-card"><h2>Dados lidos diretamente pela API do Supabase</h2><p>A verificação abaixo usa supabase-js no servidor e não passa pelo cache.</p><div id="supabase-sample"></div></div>
+        </section>
         <div
           id="notice"
           class="notice"

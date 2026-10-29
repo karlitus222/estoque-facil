@@ -1,0 +1,1 @@
+-- Carga fictícia aplicada uma única vez por iniciarBanco; veja banco/dados/dados.sql.

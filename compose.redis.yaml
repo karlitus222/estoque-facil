@@ -1,0 +1,11 @@
+services:
+  redis:
+    image: redis:7.4.8-alpine
+    ports:
+      - "127.0.0.1:6387:6379"
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
